@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ruby Browser</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 0 auto; padding: 16px; background:#111; color:#eee; }
+  input, button { padding: 8px; margin: 4px 0; border-radius: 6px; border: 1px solid #444; background:#222; color:#eee; }
+  input { width: 100%; box-sizing: border-box; }
+  button { cursor: pointer; background:#3b6; border:0; color:#000; font-weight:600; }
+  pre { background:#000; padding:12px; border-radius:6px; white-space: pre-wrap; max-height: 360px; overflow:auto; }
+  img { max-width:100%; border-radius:6px; }
+</style>
+</head>
+<body>
+<h2 style="color:#e0115f">&#9670; Ruby Browser</h2>
+<input id="server" placeholder="Server URL, e.g. https://your-app.up.railway.app">
+<input id="token" type="password" placeholder="Access token">
+<button id="connect">Connect</button>
+<hr>
+<input id="url" placeholder="https://news.ycombinator.com" value="https://news.ycombinator.com">
+<button id="go">Go + read page</button>
+<button id="shot">Screenshot</button>
+<pre id="out">Not connected.</pre>
+<img id="img" alt="">
+<script type="module">
+import { RubyBrowser } from './client.js';
+const $ = (id) => document.getElementById(id);
+let b;
+$('server').value = localStorage.getItem('aib_server') || '';
+$('connect').onclick = async () => {
+  try {
+    localStorage.setItem('aib_server', $('server').value);
+    b = new RubyBrowser($('server').value, $('token').value);
+    await b.connect();
+    $('out').textContent = 'Connected.';
+  } catch (e) { $('out').textContent = 'Error: ' + e.message; }
+};
+$('go').onclick = async () => {
+  try {
+    $('out').textContent = 'Loading...';
+    await b.goto($('url').value);
+    $('out').textContent = await b.getMarkdown();
+  } catch (e) { $('out').textContent = 'Error: ' + e.message; }
+};
+$('shot').onclick = async () => {
+  try { $('img').src = await b.screenshot(); } catch (e) { $('out').textContent = 'Error: ' + e.message; }
+};
+</script>
+</body>
+</html>
